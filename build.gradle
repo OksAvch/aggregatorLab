@@ -1,0 +1,73 @@
+plugins {
+	id 'java'
+	id 'checkstyle'
+	id 'pmd'
+	id 'jacoco'
+	id 'org.springframework.boot' version "${springVer}"
+	id 'io.spring.dependency-management' version "${dependencyManagementVer}"
+}
+
+group = 'com.learn'
+version = '0.0.1'
+
+java {
+	sourceCompatibility = '17'
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'org.springframework.boot:spring-boot-starter-integration'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.integration:spring-integration-http'
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.integration:spring-integration-test'
+	testImplementation 'org.junit.jupiter:junit-jupiter'
+	testImplementation 'org.assertj:assertj-core'
+	testImplementation 'org.mockito:mockito-core'
+	testImplementation "com.github.tomakehurst:wiremock:${wiremockVer}"
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+checkstyle {
+	checkstyleTest.enabled = false
+}
+
+pmd {
+	ignoreFailures = true
+	pmdTest.enabled=false
+	ruleSets = [
+			'java-basic',
+			'java-braces',
+			'java-clone',
+			'java-codesize',
+			'java-comments',
+			'java-controversial',
+			'java-coupling',
+			'java-design',
+			'java-empty',
+			'java-finalizers',
+			'java-imports',
+			'java-optimizations',
+			'java-strictexception',
+			'java-strings',
+			'java-typeresolution',
+			'java-unnecessary',
+			'java-unusedcode'
+	]
+}
