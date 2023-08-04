@@ -1,38 +1,19 @@
 package com.learn.aggregator.integrationtest;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.learn.aggregator.AggregatorApplication;
-import com.learn.aggregator.configuration.IntegrationParameters;
-import com.learn.aggregator.configuration.MessageGateway;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.integration.test.context.SpringIntegrationTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.event.annotation.BeforeTestMethod;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.okForContentType;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.removeAllMappings;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
@@ -64,11 +45,10 @@ class IntegrationTest {
                                 "<status>failure</status>" +
                                 "<reason>there was a failure</reason>" +
                                 "</message>")));
-        stubFor(get(URL_X)
+        stubFor(post(URL_X)
                 .willReturn(okForContentType(
                         "application/json",
-                        "\"id\": \"186256c2-297d-4a20-bfa9-45f1ad5a639f\", \"status\": \"failure\",\n" +
-                                "\"reasons\": [\"there was a failure\"]}")));
+                        "\"id\": \"186256c2-297d-4a20-bfa9-45f1ad5a639f\", \"status\": \"failure\", \"reasons\": [\"there was a failure\"]}")));
     }
 
     @AfterEach
@@ -83,7 +63,7 @@ class IntegrationTest {
 
         verify(1, getRequestedFor(urlEqualTo(URL_A)));
         verify(1, getRequestedFor(urlEqualTo(URL_B)));
-//        verify(1, postRequestedFor(urlEqualTo(URL_X)));
+        verify(1, postRequestedFor(urlEqualTo(URL_X)));
     }
 
 }

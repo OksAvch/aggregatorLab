@@ -32,6 +32,7 @@ public class ChannelConfiguration {
     public static final String SEND_OUTBOUND_REQUEST_SERVICE_B = "sendOutboundRequestServiceB";
     public static final String PREPARE_OUTBOUND_REQUEST_SERVICE_X = "prepareOutboundRequestServiceX";
     public static final String SEND_OUTBOUND_REQUEST_SERVICE_X = "sendOutboundRequestServiceX";
+    public static final String STORE_OUTBOUND_RESPONSE_SERVICE_X = "storeOutboundResponseServiceX";
 
 
     @Bean
@@ -56,8 +57,18 @@ public class ChannelConfiguration {
         return new QueueChannel();
     }
 
+    @Bean(name = SEND_OUTBOUND_REQUEST_SERVICE_X)
+    public QueueChannel sendOutboundRequestServiceX() {
+        return new QueueChannel();
+    }
+
     @Bean(name = AGGREGATE_MESSAGES)
     public QueueChannel sendToAggregator() {
+        return new QueueChannel();
+    }
+
+    @Bean(name = STORE_OUTBOUND_RESPONSE_SERVICE_X)
+    public QueueChannel storeOutboundRequestServiceX() {
         return new QueueChannel();
     }
 
@@ -65,8 +76,8 @@ public class ChannelConfiguration {
     @ServiceActivator(inputChannel = TRIGGER_SERVICE_A_REQUEST, poller = @Poller(fixedDelay = "10000"))
     public HttpRequestExecutingMessageHandler outboundRequestServiceAHandler(
 //            @Qualifier("taskSchedulerServiceA") ThreadPoolTaskScheduler taskScheduler,
-                                                                             @Qualifier(SEND_OUTBOUND_REQUEST_SERVICE_A) MessageChannel outChannel,
-                                                                             IntegrationParameters integrationParameters) {
+            @Qualifier(SEND_OUTBOUND_REQUEST_SERVICE_A) MessageChannel outChannel,
+            IntegrationParameters integrationParameters) {
         HttpRequestExecutingMessageHandler handler =
                 new HttpRequestExecutingMessageHandler(integrationParameters.getServiceAUrl());
         handler.setHttpMethod(HttpMethod.GET);
@@ -80,8 +91,8 @@ public class ChannelConfiguration {
     @ServiceActivator(inputChannel = TRIGGER_SERVICE_B_REQUEST, poller = @Poller(fixedDelay = "10000"))
     public HttpRequestExecutingMessageHandler outboundRequestServiceBHandler(
 //            @Qualifier("taskSchedulerServiceB") ThreadPoolTaskScheduler taskScheduler,
-                                                                             @Qualifier(SEND_OUTBOUND_REQUEST_SERVICE_B) MessageChannel outChannel,
-                                                                             IntegrationParameters integrationParameters) {
+            @Qualifier(SEND_OUTBOUND_REQUEST_SERVICE_B) MessageChannel outChannel,
+            IntegrationParameters integrationParameters) {
         HttpRequestExecutingMessageHandler handler =
                 new HttpRequestExecutingMessageHandler(integrationParameters.getServiceBUrl());
         handler.setHttpMethod(HttpMethod.GET);
@@ -92,12 +103,14 @@ public class ChannelConfiguration {
         return handler;
     }
 
-    @Bean(name = SEND_OUTBOUND_REQUEST_SERVICE_X)
-    public HttpRequestExecutingMessageHandler sendOutboundRequestServiceX(IntegrationParameters integrationParameters) {
+    @Bean
+    @ServiceActivator(inputChannel = SEND_OUTBOUND_REQUEST_SERVICE_X)
+    public HttpRequestExecutingMessageHandler outboundRequestServiceXHandler(IntegrationParameters integrationParameters,
+                                                                             @Qualifier(STORE_OUTBOUND_RESPONSE_SERVICE_X) MessageChannel outChannel) {
         HttpRequestExecutingMessageHandler handler =
                 new HttpRequestExecutingMessageHandler(integrationParameters.getServiceXUrl());
         handler.setHttpMethod(HttpMethod.POST);
-        handler.setExpectedResponseType(InboundMessageDto.class);
+        handler.setOutputChannel(outChannel);
         return handler;
     }
 
