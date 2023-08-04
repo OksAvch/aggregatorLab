@@ -1,0 +1,11 @@
+local:
+  server:
+    port: 8090
+integration:
+  groupLimit: 2
+  serviceA:
+    pollerPeriod: 2000
+    url: "http://localhost:7070/api/v2.1/results"
+  serviceB:
+    pollerPeriod: 2000
+    url: "http://localhost:7070/api/v0.7/status"
