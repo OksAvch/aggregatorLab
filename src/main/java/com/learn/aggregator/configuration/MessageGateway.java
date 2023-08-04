@@ -10,6 +10,6 @@ public interface MessageGateway {
     @Gateway(requestChannel = ChannelConfiguration.AGGREGATE_MESSAGES)
     void aggregateMessages(InboundMessageDto outboundMessageDto);
 
-    @Gateway(requestChannel = ChannelConfiguration.SEND_OUTBOUND_REQUEST_SERVICE_A)
+    @Gateway(requestChannel = ChannelConfiguration.SERVICE_A_REQUEST_TRIGGER)
     void sendOutboundRequestServiceA(InboundMessageDto outboundMessageDto);
 }

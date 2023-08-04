@@ -16,6 +16,8 @@ public class IntegrationParameters {
     private int pollerPeriodServiceA;
     @Value("${integration.serviceB.url}")
     private String serviceBUrl;
+    @Value("${integration.serviceX.url}")
+    private String serviceXUrl;
     @Value("${integration.serviceB.pollerPeriod}")
     private int pollerPeriodServiceB;
 }

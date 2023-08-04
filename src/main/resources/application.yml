@@ -9,3 +9,6 @@ integration:
   serviceB:
     pollerPeriod: 2000
     url: "http://localhost:7070/api/v0.7/status"
+  serviceX:
+    pollerPeriod: 2000
+    url: "http://localhost:7070/api/v1/finalize"

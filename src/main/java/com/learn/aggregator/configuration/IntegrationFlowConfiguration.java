@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.aggregator.CorrelationStrategy;
+import org.springframework.integration.aggregator.ReleaseStrategy;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.store.SimpleMessageStore;
 
@@ -12,12 +13,11 @@ import org.springframework.integration.store.SimpleMessageStore;
 @RequiredArgsConstructor
 public class IntegrationFlowConfiguration {
 
-    private IntegrationParameters integrationParameters;
-
     @Bean
     public IntegrationFlow readFromServiceA() {
         return IntegrationFlow
-                .from(ChannelConfiguration.SEND_OUTBOUND_REQUEST_SERVICE_A)
+                .from(ChannelConfiguration.SERVICE_A_REQUEST_TRIGGER)
+                .log(IntegrationFlowConfiguration.class.getName(), m -> ">>> Outbound A flow: " + m.getPayload())
                 .channel(ChannelConfiguration.AGGREGATE_MESSAGES)
                 .get();
     }
@@ -26,6 +26,7 @@ public class IntegrationFlowConfiguration {
     public IntegrationFlow readFromServiceB() {
         return IntegrationFlow
                 .from(ChannelConfiguration.SEND_OUTBOUND_REQUEST_SERVICE_B)
+                .log(IntegrationFlowConfiguration.class.getName(), m -> ">>> Outbound B flow: " + m.getPayload())
                 .channel(ChannelConfiguration.AGGREGATE_MESSAGES)
                 .get();
     }
@@ -34,6 +35,7 @@ public class IntegrationFlowConfiguration {
     public IntegrationFlow sendToServiceX() {
         return IntegrationFlow
                 .from(ChannelConfiguration.PREPARE_OUTBOUND_REQUEST_SERVICE_X)
+                .log(IntegrationFlowConfiguration.class.getName(), m -> ">>> Outbound X flow: " + m.getPayload())
                 .channel(ChannelConfiguration.SEND_OUTBOUND_REQUEST_SERVICE_X)
                 .get();
     }
@@ -41,10 +43,11 @@ public class IntegrationFlowConfiguration {
     @Bean
     public IntegrationFlow aggregationFlow(SimpleMessageStore messageStore,
                                            CorrelationStrategy correlationStrategy,
-                                           AggregatedMessagesProcessor aggregatedMessagesProcessor) {
+                                           AggregatedMessagesProcessor aggregatedMessagesProcessor,
+                                           ReleaseStrategy releaseStrategy) {
         return IntegrationFlow.from(ChannelConfiguration.AGGREGATE_MESSAGES)
                 .log(IntegrationFlowConfiguration.class.getName(), m -> ">>> Aggregation flow: " + m.getPayload())
-                .aggregate(a -> a.releaseStrategy(g -> g.size() == integrationParameters.getGroupLimit())
+                .aggregate(a -> a.releaseStrategy(releaseStrategy)
                         .messageStore(messageStore)
                         .correlationStrategy(correlationStrategy)
                         .outputProcessor(aggregatedMessagesProcessor)

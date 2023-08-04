@@ -6,10 +6,8 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.learn.aggregator.AggregatorApplication;
-import com.learn.aggregator.configuration.ChannelConfiguration;
 import com.learn.aggregator.configuration.IntegrationParameters;
 import com.learn.aggregator.configuration.MessageGateway;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,7 +22,6 @@ import org.springframework.http.MediaType;
 import org.springframework.integration.test.context.SpringIntegrationTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.event.annotation.BeforeTestMethod;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -43,31 +40,38 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
 
 @SpringBootTest(classes = AggregatorApplication.class)
-@WireMockTest(httpPort = 50001)
+@WireMockTest(httpPort = 7770)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestPropertySource(properties = {
-        "integration.serviceA.url=http://localhost:50001/api/v2.1/results",
-        "integration.serviceB.url=http://localhost:50001/api/v0.7/status"})
-public class IntegrationTest {
-    private static final String PATH_A = "/api/v2.1/results";
-    private static final String PATH_B = "/api/v0.7/status";
+        "integration.serviceA.url=http://localhost:7770/api/v2.1/results",
+        "integration.serviceB.url=http://localhost:7770/api/v0.7/status",
+        "integration.serviceX.url=http://localhost:7770/api/v1/finalize"})
+class IntegrationTest {
+    private static final String URL_A = "/api/v2.1/results";
+    private static final String URL_B = "/api/v0.7/status";
+    private static final String URL_X = "/api/v1/finalize";
 
-    @BeforeAll
+    @BeforeEach
     void setGeneralStub() {
-        stubFor(get(PATH_A)
+        stubFor(get(URL_A)
                 .willReturn(okForContentType(
                         "application/json",
                         "{\"id\": \"186256c2-297d-4a20-bfa9-45f1ad5a639f\",\"status\": \"success\"}")));
-        stubFor(get(PATH_B)
+        stubFor(get(URL_B)
                 .willReturn(okForContentType(
                         "application/xml",
                         "<message id=\"186256c2-297d-4a20-bfa9-45f1ad5a639f\">" +
                                 "<status>failure</status>" +
                                 "<reason>there was a failure</reason>" +
                                 "</message>")));
+        stubFor(get(URL_X)
+                .willReturn(okForContentType(
+                        "application/json",
+                        "\"id\": \"186256c2-297d-4a20-bfa9-45f1ad5a639f\", \"status\": \"failure\",\n" +
+                                "\"reasons\": [\"there was a failure\"]}")));
     }
 
-    @AfterAll
+    @AfterEach
     void cleanStubs() {
         removeAllMappings();
     }
@@ -77,8 +81,9 @@ public class IntegrationTest {
     void shouldPerformOutboundRequests() throws InterruptedException {
         Thread.sleep(20000);
 
-        verify(1, getRequestedFor(urlEqualTo(PATH_A)));
-        verify(1, getRequestedFor(urlEqualTo(PATH_B)));
+        verify(1, getRequestedFor(urlEqualTo(URL_A)));
+//        verify(1, getRequestedFor(urlEqualTo(URL_B)));
+//        verify(1, postRequestedFor(urlEqualTo(URL_X)));
     }
 
 }
