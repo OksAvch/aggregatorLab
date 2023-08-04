@@ -26,8 +26,8 @@ import java.util.List;
 @AllArgsConstructor
 public class ChannelConfiguration {
     public static final String AGGREGATE_MESSAGES = "aggregateMessages";
-    public static final String SERVICE_A_REQUEST_TRIGGER = "serviceARequestTrigger";
-    public static final String SERVICE_B_REQUEST_TRIGGER = "serviceBRequestTrigger";
+    public static final String TRIGGER_SERVICE_A_REQUEST = "triggerServiceARequest";
+    public static final String TRIGGER_SERVICE_B_REQUEST = "triggerServiceBRequest";
     public static final String SEND_OUTBOUND_REQUEST_SERVICE_A = "sendOutboundRequestServiceA";
     public static final String SEND_OUTBOUND_REQUEST_SERVICE_B = "sendOutboundRequestServiceB";
     public static final String PREPARE_OUTBOUND_REQUEST_SERVICE_X = "prepareOutboundRequestServiceX";
@@ -35,14 +35,14 @@ public class ChannelConfiguration {
 
 
     @Bean
-    @Qualifier("serviceARequestChannel")
-    public MessageChannel serviceARequestChannel() {
+    @Qualifier(TRIGGER_SERVICE_A_REQUEST)
+    public MessageChannel triggerServiceARequest() {
         return new QueueChannel();
     }
 
     @Bean
-    @Qualifier("serviceBRequestChannel")
-    public MessageChannel serviceBRequestChannel() {
+    @Qualifier(TRIGGER_SERVICE_B_REQUEST)
+    public MessageChannel triggerServiceBRequest() {
         return new QueueChannel();
     }
 
@@ -62,7 +62,7 @@ public class ChannelConfiguration {
     }
 
     @Bean
-    @ServiceActivator(inputChannel = "serviceARequestChannel", poller = @Poller(fixedDelay = "10000"))
+    @ServiceActivator(inputChannel = TRIGGER_SERVICE_A_REQUEST, poller = @Poller(fixedDelay = "10000"))
     public HttpRequestExecutingMessageHandler outboundRequestServiceAHandler(
 //            @Qualifier("taskSchedulerServiceA") ThreadPoolTaskScheduler taskScheduler,
                                                                              @Qualifier(SEND_OUTBOUND_REQUEST_SERVICE_A) MessageChannel outChannel,
@@ -77,7 +77,7 @@ public class ChannelConfiguration {
     }
 
     @Bean
-    @ServiceActivator(inputChannel = "serviceBRequestChannel", poller = @Poller(fixedDelay = "10000"))
+    @ServiceActivator(inputChannel = TRIGGER_SERVICE_B_REQUEST, poller = @Poller(fixedDelay = "10000"))
     public HttpRequestExecutingMessageHandler outboundRequestServiceBHandler(
 //            @Qualifier("taskSchedulerServiceB") ThreadPoolTaskScheduler taskScheduler,
                                                                              @Qualifier(SEND_OUTBOUND_REQUEST_SERVICE_B) MessageChannel outChannel,
@@ -131,13 +131,13 @@ public class ChannelConfiguration {
     }
 
     @Bean
-    @InboundChannelAdapter(value = "serviceARequestChannel", poller = @Poller(fixedDelay = "10000"))
+    @InboundChannelAdapter(value = TRIGGER_SERVICE_A_REQUEST, poller = @Poller(fixedDelay = "10000"))
     public MessageSource<String> serviceARequestTrigger() {
         return new ExpressionEvaluatingMessageSource<>(new LiteralExpression(""), String.class);
     }
 
     @Bean
-    @InboundChannelAdapter(value = "serviceBRequestChannel", poller = @Poller(fixedDelay = "10000"))
+    @InboundChannelAdapter(value = TRIGGER_SERVICE_B_REQUEST, poller = @Poller(fixedDelay = "10000"))
     public MessageSource<String> serviceBRequestTrigger() {
         return new ExpressionEvaluatingMessageSource<>(new LiteralExpression(""), String.class);
     }
