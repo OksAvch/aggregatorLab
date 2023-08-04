@@ -82,7 +82,7 @@ class IntegrationTest {
         Thread.sleep(20000);
 
         verify(1, getRequestedFor(urlEqualTo(URL_A)));
-//        verify(1, getRequestedFor(urlEqualTo(URL_B)));
+        verify(1, getRequestedFor(urlEqualTo(URL_B)));
 //        verify(1, postRequestedFor(urlEqualTo(URL_X)));
     }
 

@@ -11,6 +11,7 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Log4j2
@@ -27,7 +28,8 @@ public class AggregatedMessagesProcessor implements MessageGroupProcessor {
 
         List<String> reasons = group.getMessages().stream()
                 .map(m -> ((InboundMessageDto) m.getPayload()).getReason())
-                .collect(Collectors.toList());
+                .filter(Objects::nonNull)
+                .toList();
         boolean isSuccessful = group.getMessages().stream()
                 .map(m -> ((InboundMessageDto) m.getPayload()))
                 .map(InboundMessageDto::getStatus)

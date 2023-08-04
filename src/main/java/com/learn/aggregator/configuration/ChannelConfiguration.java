@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConverter;
 import org.springframework.integration.aggregator.CorrelationStrategy;
 import org.springframework.integration.aggregator.ReleaseStrategy;
 import org.springframework.integration.annotation.InboundChannelAdapter;
@@ -18,6 +19,8 @@ import org.springframework.integration.endpoint.ExpressionEvaluatingMessageSourc
 import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.messaging.MessageChannel;
+
+import java.util.List;
 
 @Configuration
 @AllArgsConstructor
@@ -32,8 +35,14 @@ public class ChannelConfiguration {
 
 
     @Bean
-    @Qualifier("httpRequestChannel")
-    public MessageChannel httpRequestChannel() {
+    @Qualifier("serviceARequestChannel")
+    public MessageChannel serviceARequestChannel() {
+        return new QueueChannel();
+    }
+
+    @Bean
+    @Qualifier("serviceBRequestChannel")
+    public MessageChannel serviceBRequestChannel() {
         return new QueueChannel();
     }
 
@@ -53,7 +62,7 @@ public class ChannelConfiguration {
     }
 
     @Bean
-    @ServiceActivator(inputChannel = "httpRequestChannel", poller = @Poller(fixedDelay = "10000"))
+    @ServiceActivator(inputChannel = "serviceARequestChannel", poller = @Poller(fixedDelay = "10000"))
     public HttpRequestExecutingMessageHandler outboundRequestServiceAHandler(
 //            @Qualifier("taskSchedulerServiceA") ThreadPoolTaskScheduler taskScheduler,
                                                                              @Qualifier(SEND_OUTBOUND_REQUEST_SERVICE_A) MessageChannel outChannel,
@@ -68,7 +77,7 @@ public class ChannelConfiguration {
     }
 
     @Bean
-    @ServiceActivator(inputChannel = "httpRequestChannel", poller = @Poller(fixedDelay = "10000"))
+    @ServiceActivator(inputChannel = "serviceBRequestChannel", poller = @Poller(fixedDelay = "10000"))
     public HttpRequestExecutingMessageHandler outboundRequestServiceBHandler(
 //            @Qualifier("taskSchedulerServiceB") ThreadPoolTaskScheduler taskScheduler,
                                                                              @Qualifier(SEND_OUTBOUND_REQUEST_SERVICE_B) MessageChannel outChannel,
@@ -76,6 +85,7 @@ public class ChannelConfiguration {
         HttpRequestExecutingMessageHandler handler =
                 new HttpRequestExecutingMessageHandler(integrationParameters.getServiceBUrl());
         handler.setHttpMethod(HttpMethod.GET);
+        handler.setMessageConverters(List.of(new MappingJackson2XmlHttpMessageConverter()));
         handler.setExpectedResponseType(InboundMessageDto.class);
         handler.setOutputChannel(outChannel);
         //handler.setTaskScheduler(taskScheduler);
@@ -121,8 +131,14 @@ public class ChannelConfiguration {
     }
 
     @Bean
-    @InboundChannelAdapter(value = "httpRequestChannel", poller = @Poller(fixedDelay = "10000"))
-    public MessageSource<String> httpRequestTrigger() {
+    @InboundChannelAdapter(value = "serviceARequestChannel", poller = @Poller(fixedDelay = "10000"))
+    public MessageSource<String> serviceARequestTrigger() {
+        return new ExpressionEvaluatingMessageSource<>(new LiteralExpression(""), String.class);
+    }
+
+    @Bean
+    @InboundChannelAdapter(value = "serviceBRequestChannel", poller = @Poller(fixedDelay = "10000"))
+    public MessageSource<String> serviceBRequestTrigger() {
         return new ExpressionEvaluatingMessageSource<>(new LiteralExpression(""), String.class);
     }
 

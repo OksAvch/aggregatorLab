@@ -16,7 +16,7 @@ public class IntegrationFlowConfiguration {
     @Bean
     public IntegrationFlow readFromServiceA() {
         return IntegrationFlow
-                .from(ChannelConfiguration.SERVICE_A_REQUEST_TRIGGER)
+                .from(ChannelConfiguration.SEND_OUTBOUND_REQUEST_SERVICE_A)
                 .log(IntegrationFlowConfiguration.class.getName(), m -> ">>> Outbound A flow: " + m.getPayload())
                 .channel(ChannelConfiguration.AGGREGATE_MESSAGES)
                 .get();

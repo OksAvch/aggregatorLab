@@ -29,6 +29,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-integration'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.integration:spring-integration-http'
+	implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 
