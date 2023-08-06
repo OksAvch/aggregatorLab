@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.aggregator.CorrelationStrategy;
 import org.springframework.integration.aggregator.ReleaseStrategy;
 import org.springframework.integration.dsl.IntegrationFlow;
+import org.springframework.integration.json.ObjectToJsonTransformer;
 import org.springframework.integration.store.SimpleMessageStore;
 
 @Configuration
@@ -32,10 +33,11 @@ public class IntegrationFlowConfiguration {
     }
 
     @Bean
-    public IntegrationFlow sendToServiceX() {
+    public IntegrationFlow sendToServiceX(ObjectToJsonTransformer jsonTransformer) {
         return IntegrationFlow
                 .from(ChannelConfiguration.PREPARE_OUTBOUND_REQUEST_SERVICE_X)
                 .log(IntegrationFlowConfiguration.class.getName(), m -> ">>> Outbound X flow: " + m.getPayload())
+                .transform(jsonTransformer)
                 .channel(ChannelConfiguration.SEND_OUTBOUND_REQUEST_SERVICE_X)
                 .get();
     }
@@ -45,6 +47,7 @@ public class IntegrationFlowConfiguration {
                                            CorrelationStrategy correlationStrategy,
                                            AggregatedMessagesProcessor aggregatedMessagesProcessor,
                                            ReleaseStrategy releaseStrategy) {
+
         return IntegrationFlow.from(ChannelConfiguration.AGGREGATE_MESSAGES)
                 .log(IntegrationFlowConfiguration.class.getName(), m -> ">>> Aggregation flow: " + m.getPayload())
                 .aggregate(a -> a.releaseStrategy(releaseStrategy)

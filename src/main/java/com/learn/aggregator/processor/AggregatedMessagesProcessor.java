@@ -36,6 +36,6 @@ public class AggregatedMessagesProcessor implements MessageGroupProcessor {
                 .allMatch(status -> status.equals(SUCCESS_STATUS));
         String status = isSuccessful ? SUCCESS_STATUS : FAILURE_STATUS;
 
-        return new GenericMessage<>(new OutboundMessageDto(group.getGroupId().toString(), status, reasons));
+        return new OutboundMessageDto(group.getGroupId().toString(), status, reasons);
     }
 }

@@ -6,7 +6,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.expression.common.LiteralExpression;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConverter;
 import org.springframework.integration.aggregator.CorrelationStrategy;
 import org.springframework.integration.aggregator.ReleaseStrategy;
@@ -17,6 +20,9 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.ExpressionEvaluatingMessageSource;
 import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
+import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
+import org.springframework.integration.json.ObjectToJsonTransformer;
+import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.messaging.MessageChannel;
 
@@ -75,14 +81,13 @@ public class ChannelConfiguration {
     @Bean
     @ServiceActivator(inputChannel = TRIGGER_SERVICE_A_REQUEST, poller = @Poller(fixedDelay = "10000"))
     public HttpRequestExecutingMessageHandler outboundRequestServiceAHandler(
-//            @Qualifier("taskSchedulerServiceA") ThreadPoolTaskScheduler taskScheduler,
             @Qualifier(SEND_OUTBOUND_REQUEST_SERVICE_A) MessageChannel outChannel,
             IntegrationParameters integrationParameters) {
+
         HttpRequestExecutingMessageHandler handler =
                 new HttpRequestExecutingMessageHandler(integrationParameters.getServiceAUrl());
         handler.setHttpMethod(HttpMethod.GET);
         handler.setExpectedResponseType(InboundMessageDto.class);
-        //handler.setTaskScheduler(taskScheduler);
         handler.setOutputChannel(outChannel);
         return handler;
     }
@@ -90,43 +95,39 @@ public class ChannelConfiguration {
     @Bean
     @ServiceActivator(inputChannel = TRIGGER_SERVICE_B_REQUEST, poller = @Poller(fixedDelay = "10000"))
     public HttpRequestExecutingMessageHandler outboundRequestServiceBHandler(
-//            @Qualifier("taskSchedulerServiceB") ThreadPoolTaskScheduler taskScheduler,
             @Qualifier(SEND_OUTBOUND_REQUEST_SERVICE_B) MessageChannel outChannel,
             IntegrationParameters integrationParameters) {
+
         HttpRequestExecutingMessageHandler handler =
                 new HttpRequestExecutingMessageHandler(integrationParameters.getServiceBUrl());
         handler.setHttpMethod(HttpMethod.GET);
         handler.setMessageConverters(List.of(new MappingJackson2XmlHttpMessageConverter()));
         handler.setExpectedResponseType(InboundMessageDto.class);
         handler.setOutputChannel(outChannel);
-        //handler.setTaskScheduler(taskScheduler);
         return handler;
     }
 
     @Bean
     @ServiceActivator(inputChannel = SEND_OUTBOUND_REQUEST_SERVICE_X)
-    public HttpRequestExecutingMessageHandler outboundRequestServiceXHandler(IntegrationParameters integrationParameters,
-                                                                             @Qualifier(STORE_OUTBOUND_RESPONSE_SERVICE_X) MessageChannel outChannel) {
+    public HttpRequestExecutingMessageHandler outboundRequestServiceXHandler(
+            IntegrationParameters integrationParameters,
+            @Qualifier(STORE_OUTBOUND_RESPONSE_SERVICE_X) MessageChannel outChannel,
+            MappingJackson2HttpMessageConverter toJsonConverter) {
+
         HttpRequestExecutingMessageHandler handler =
                 new HttpRequestExecutingMessageHandler(integrationParameters.getServiceXUrl());
         handler.setHttpMethod(HttpMethod.POST);
         handler.setOutputChannel(outChannel);
+
+        HeaderMapper<HttpHeaders> mapper = new DefaultHttpHeaderMapper();
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+        mapper.toHeaders(httpHeaders);
+        handler.setHeaderMapper(mapper);
+
+
         return handler;
     }
-
-//    @Bean(name = "taskSchedulerServiceA")
-//    public ThreadPoolTaskScheduler taskSchedulerServiceA(IntegrationParameters integrationParameters) {
-//        ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
-//        taskScheduler.setPoolSize(integrationParameters.getPollerPeriodServiceA());
-//        return taskScheduler;
-//    }
-//
-//    @Bean(name = "taskSchedulerServiceB")
-//    public ThreadPoolTaskScheduler taskSchedulerServiceB(IntegrationParameters integrationParameters) {
-//        ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
-//        taskScheduler.setPoolSize(integrationParameters.getPollerPeriodServiceB());
-//        return taskScheduler;
-//    }
 
     @Bean
     public CorrelationStrategy correlationStrategy() {
@@ -155,5 +156,8 @@ public class ChannelConfiguration {
         return new ExpressionEvaluatingMessageSource<>(new LiteralExpression(""), String.class);
     }
 
-
+    @Bean
+    public ObjectToJsonTransformer jsonTransformer(){
+        return new ObjectToJsonTransformer();
+    }
 }
