@@ -3,16 +3,13 @@ package com.learn.aggregator.processor;
 import com.learn.aggregator.dto.InboundMessageDto;
 import com.learn.aggregator.dto.OutboundMessageDto;
 import lombok.AllArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.integration.aggregator.MessageGroupProcessor;
 import org.springframework.integration.store.MessageGroup;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Log4j2
 @Component
@@ -23,7 +20,7 @@ public class AggregatedMessagesProcessor implements MessageGroupProcessor {
     private static final String FAILURE_STATUS = "failure";
 
     @Override
-    public Object processMessageGroup(MessageGroup group) {
+    public OutboundMessageDto processMessageGroup(MessageGroup group) {
         log.info("Message group '{}' received, size: {}", group.getGroupId(), group.size());
 
         List<String> reasons = group.getMessages().stream()

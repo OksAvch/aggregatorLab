@@ -45,11 +45,11 @@ class IntegrationTest {
     private static final String SUCCESS = "success";
     private static final String FAILURE = "failure";
     private static final String FAILURE_REASON = "there was a failure";
-    private static final String SERVICE_A_BODY_TEMPLATE = "{\"id\": \"%s\",\"status\": \"%s\"}";
-    public static final String SERVICE_B_BODY_TEMPLATE = "<message id=\"%s\">" +
-            "<status>%s</status>" +
-            "<reason>%s</reason>" +
-            "</message>";
+    private static final String SERVICE_A_BODY_TEMPLATE = "{\"id\": \"%s\",\"status\": \"%s\",\"reason\": \"%s\"}";
+    private static final String SUCCESS_SERVICE_A_BODY_TEMPLATE = "{\"id\": \"%s\",\"status\": \"%s\"}";
+    public static final String SERVICE_B_BODY_TEMPLATE = "<message id=\"%s\"><status>%s</status><reason>%s</reason></message>";
+    public static final String JSON_TYPE = "application/json";
+    public static final String XML_TYPE = "application/xml";
 
     @AfterAll
     void cleanStubs() {
@@ -59,16 +59,16 @@ class IntegrationTest {
 
     @Test
     @Order(1)
-    void shouldTriggerOutboundRequestsPeriodicaly() throws InterruptedException {
+    void shouldTriggerOutboundRequestsPeriodically() throws InterruptedException {
         String id = "OUTBOUND_REQUEST_TRIGGER_TEST_ID";
         //given
         stubFor(get(URL_A)
                 .willReturn(okForContentType(
-                        "application/json",
-                        String.format(SERVICE_A_BODY_TEMPLATE, id, SUCCESS))));
+                        JSON_TYPE,
+                        String.format(SUCCESS_SERVICE_A_BODY_TEMPLATE, id, SUCCESS))));
         stubFor(get(URL_B)
                 .willReturn(okForContentType(
-                        "application/xml",
+                        XML_TYPE,
                         String.format(SERVICE_B_BODY_TEMPLATE, id, FAILURE, FAILURE_REASON))));
         stubFor(post(URL_X)
                 .withRequestBody(matchingJsonPath("$.id", equalTo(id)))
@@ -94,11 +94,11 @@ class IntegrationTest {
         //given
         stubFor(get(URL_A)
                 .willReturn(okForContentType(
-                        "application/json",
-                        String.format(SERVICE_A_BODY_TEMPLATE, id, SUCCESS))));
+                        JSON_TYPE,
+                        String.format(SUCCESS_SERVICE_A_BODY_TEMPLATE, id, SUCCESS))));
         stubFor(get(URL_B)
                 .willReturn(okForContentType(
-                        "application/xml",
+                        XML_TYPE,
                         String.format(SERVICE_B_BODY_TEMPLATE, id, SUCCESS, StringUtils.EMPTY))));
         stubFor(post(URL_X)
                 .withRequestBody(matchingJsonPath("$.id", equalTo(id)))
@@ -123,11 +123,11 @@ class IntegrationTest {
         //given
         stubFor(get(URL_A)
                 .willReturn(okForContentType(
-                        "application/json",
-                        String.format(SERVICE_A_BODY_TEMPLATE, firstId, SUCCESS))));
+                        JSON_TYPE,
+                        String.format(SERVICE_A_BODY_TEMPLATE, firstId, FAILURE, FAILURE_REASON))));
         stubFor(get(URL_B)
                 .willReturn(okForContentType(
-                        "application/xml",
+                        XML_TYPE,
                         String.format(SERVICE_B_BODY_TEMPLATE, secondId, FAILURE, FAILURE_REASON))));
         stubFor(post(URL_X)
                 .withRequestBody(matchingJsonPath("$.id", equalTo(aggregationId)))
