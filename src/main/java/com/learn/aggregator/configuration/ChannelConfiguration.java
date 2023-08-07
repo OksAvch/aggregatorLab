@@ -11,8 +11,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConverter;
-import org.springframework.integration.aggregator.CorrelationStrategy;
-import org.springframework.integration.aggregator.ReleaseStrategy;
 import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.annotation.ServiceActivator;
@@ -21,9 +19,7 @@ import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.ExpressionEvaluatingMessageSource;
 import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
 import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
-import org.springframework.integration.json.ObjectToJsonTransformer;
 import org.springframework.integration.mapping.HeaderMapper;
-import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.messaging.MessageChannel;
 
 import java.util.List;
@@ -79,7 +75,7 @@ public class ChannelConfiguration {
     }
 
     @Bean
-    @ServiceActivator(inputChannel = TRIGGER_SERVICE_A_REQUEST, poller = @Poller(fixedDelay = "10000"))
+    @ServiceActivator(inputChannel = TRIGGER_SERVICE_A_REQUEST, poller = @Poller(fixedDelay = "${integration.serviceA.pollerPeriod}"))
     public HttpRequestExecutingMessageHandler outboundRequestServiceAHandler(
             @Qualifier(SEND_OUTBOUND_REQUEST_SERVICE_A) MessageChannel outChannel,
             IntegrationParameters integrationParameters) {
@@ -93,7 +89,7 @@ public class ChannelConfiguration {
     }
 
     @Bean
-    @ServiceActivator(inputChannel = TRIGGER_SERVICE_B_REQUEST, poller = @Poller(fixedDelay = "10000"))
+    @ServiceActivator(inputChannel = TRIGGER_SERVICE_B_REQUEST, poller = @Poller(fixedDelay = "${integration.serviceB.pollerPeriod}"))
     public HttpRequestExecutingMessageHandler outboundRequestServiceBHandler(
             @Qualifier(SEND_OUTBOUND_REQUEST_SERVICE_B) MessageChannel outChannel,
             IntegrationParameters integrationParameters) {
@@ -130,34 +126,14 @@ public class ChannelConfiguration {
     }
 
     @Bean
-    public CorrelationStrategy correlationStrategy() {
-        return message -> ((InboundMessageDto) message.getPayload()).getId();
-    }
-
-    @Bean
-    public ReleaseStrategy releaseStrategy(IntegrationParameters integrationParameters) {
-        return group -> group.size() == integrationParameters.getGroupLimit();
-    }
-
-    @Bean
-    public SimpleMessageStore messageStore() {
-        return new SimpleMessageStore();
-    }
-
-    @Bean
-    @InboundChannelAdapter(value = TRIGGER_SERVICE_A_REQUEST, poller = @Poller(fixedDelay = "10000"))
+    @InboundChannelAdapter(value = TRIGGER_SERVICE_A_REQUEST, poller = @Poller(fixedDelay = "${integration.serviceA.pollerPeriod}"))
     public MessageSource<String> serviceARequestTrigger() {
         return new ExpressionEvaluatingMessageSource<>(new LiteralExpression(""), String.class);
     }
 
     @Bean
-    @InboundChannelAdapter(value = TRIGGER_SERVICE_B_REQUEST, poller = @Poller(fixedDelay = "10000"))
+    @InboundChannelAdapter(value = TRIGGER_SERVICE_B_REQUEST, poller = @Poller(fixedDelay = "${integration.serviceB.pollerPeriod}"))
     public MessageSource<String> serviceBRequestTrigger() {
         return new ExpressionEvaluatingMessageSource<>(new LiteralExpression(""), String.class);
-    }
-
-    @Bean
-    public ObjectToJsonTransformer jsonTransformer(){
-        return new ObjectToJsonTransformer();
     }
 }
