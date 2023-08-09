@@ -20,13 +20,7 @@ build:
     paths:
       - build
       - .gradle
-
-test:
-  stage: test
-  script: gradle check
-  cache:
-    key: "$CI_COMMIT_REF_NAME"
-    policy: pull
+  artifacts:
+    name: "$env:CI_JOB_STAGE-$env:CI_COMMIT_REF_NAME"
     paths:
-      - build
-      - .gradle
+      - build/reports/tests
