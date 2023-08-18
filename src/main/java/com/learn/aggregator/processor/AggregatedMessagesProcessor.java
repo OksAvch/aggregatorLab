@@ -23,16 +23,24 @@ public class AggregatedMessagesProcessor implements MessageGroupProcessor {
     public OutboundMessageDto processMessageGroup(MessageGroup group) {
         log.info("Message group '{}' received, size: {}", group.getGroupId(), group.size());
 
-        List<String> reasons = group.getMessages().stream()
-                .map(m -> ((InboundMessageDto) m.getPayload()).getReason())
-                .filter(Objects::nonNull)
-                .toList();
+        String status = getGroupStatus(group);
+        List<String> reasons = getFailureReasons(group);
+
+        return new OutboundMessageDto(group.getGroupId().toString(), status, reasons);
+    }
+
+    private static String getGroupStatus(MessageGroup group) {
         boolean isSuccessful = group.getMessages().stream()
                 .map(m -> ((InboundMessageDto) m.getPayload()))
                 .map(InboundMessageDto::getStatus)
                 .allMatch(status -> status.equals(SUCCESS_STATUS));
-        String status = isSuccessful ? SUCCESS_STATUS : FAILURE_STATUS;
+        return isSuccessful ? SUCCESS_STATUS : FAILURE_STATUS;
+    }
 
-        return new OutboundMessageDto(group.getGroupId().toString(), status, reasons);
+    private static List<String> getFailureReasons(MessageGroup group) {
+        return group.getMessages().stream()
+                .map(m -> ((InboundMessageDto) m.getPayload()).getReason())
+                .filter(Objects::nonNull)
+                .toList();
     }
 }

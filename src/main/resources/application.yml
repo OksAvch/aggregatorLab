@@ -1,6 +1,5 @@
-local:
-  server:
-    port: 8090
+server:
+  port: 8090
 integration:
   groupLimit: 2
   serviceA:
