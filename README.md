@@ -1,6 +1,6 @@
 ## General details
 ### About the application
-The primary objectives of the service encompass the solicitation and consolidation of computational outcomes from third-party entities such as A, B, and others. Subsequent to the data collection and aggregation processes, the amalgamated outcome is conveyed to service X.
+The primary objectives of the service encompass the solicitation and consolidation of computational outcomes from third-party entities such as A, B, and others. Utilizing the Scatter-Gather Pattern, the service distributes requests to multiple third-party entities, gathers their responses, and aggregates the results. Subsequent to the data collection and aggregation processes, the amalgamated outcome is conveyed to service X.
 
 ### Application architecture
 ![architecture.png](images/architecture.png)
